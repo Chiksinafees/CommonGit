@@ -1,42 +1,37 @@
-import { useState, useCallback, useMemo } from "react";
-import DemoList from "./component/Demo/DemoList";
-import Button from "./component/UI/Button";
+import { Fragment, useState } from "react";
+import MovieList from "./component/MoviesList";
 
 function App() {
-  const [listTitle, setListTitle] = useState("My List");
-  const [descending, setDesending] = useState([5, 3, 1, 10, 9]);
-  const [btnText, setBtnText] = useState("descending order");
+  const [movies, setMovies] = useState([]);
 
-  const changeTitleHandler = useCallback(() => {
-    setListTitle("New Title");
-  }, []);
+  async function fetchMovieHandler() {
+    try {
+      const response = await fetch("https://swapi.py4e.com/api/films/");
+      const data = await response.json();
 
-  const changeDesending = () => {
-    let change = btnText;
-
-    if (change === "descending order")
-       {
-         setBtnText("Ascending Order");
-         const descendingSort = listItems.sort((a, b) => b - a);
-         setDesending(descendingSort);
-       }
-    else
-       {
-         setBtnText("descending order");
-         const assendingSort = listItems.sort((a, b) => a - b);
-         setDesending(assendingSort);
-       }
-  };
-
-  const listItems = useMemo(() => [5, 3, 1, 10, 9], []);
+      const transferMovies = data.results.map((moviedata) => {
+        return {
+          id: moviedata.episode_id,
+          title: moviedata.title,
+          openingText: moviedata.opening_crawl,
+          releaseDate: moviedata.relese_date,
+        };
+      });
+      setMovies(transferMovies);
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   return (
-    <div className="app">
-      <DemoList title={listTitle} items={listItems} />
-      <Button onClick={changeTitleHandler}>change list Title</Button>
-      <Button onClick={changeDesending}>{btnText}</Button>
-    </div>
+    <Fragment>
+      <section>
+        <button onClick={fetchMovieHandler}>fetch Movies</button>
+      </section>
+      <section>
+        <MovieList movies={movies} />
+      </section>
+    </Fragment>
   );
 }
-
 export default App;
