@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState, useCallback } from "react";
 import MovieList from "./component/MoviesList";
 import "./App.css";
 
@@ -9,14 +9,14 @@ function App() {
   const [error, setError] = useState(null);
   const [stopRetry, setStopRetry] = useState(true);
 
-  async function fetchMovieHandler() {
+  const fetchMovieHandler= useCallback(async () => {
 
-    console.log("run");
+    //console.log("run");
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch("https://swapi.py4e.com/api/film/");
+      const response = await fetch("https://swapi.py4e.com/api/films/");
 
       if (!response.ok) {
         throw new Error("Something went wrong ....Retrying");
@@ -38,7 +38,11 @@ function App() {
             }
 
     setIsLoading(false);
-  }
+  }, [])
+
+  useEffect(()=>{
+  fetchMovieHandler()
+}, [])
 
   if (error) {
      if (stopRetry) {
@@ -52,6 +56,8 @@ function App() {
     //console.log('stop')
     setStopRetry(false);
   };
+
+
 
   return (
     <Fragment>
