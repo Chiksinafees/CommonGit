@@ -3,14 +3,16 @@ import MovieList from "./component/MoviesList";
 import "./App.css";
 
 function App() {
-
   const [movies, setMovies] = useState([]);
   const [isloading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [stopRetry, setStopRetry] = useState(true);
 
-  const fetchMovieHandler= useCallback(async () => {
+const [title, setTitle]=useState('')
+const [openingText, setOpeningText]=useState('')
+const [releaseDate, setReleaseDate]=useState('')
 
+  const fetchMovieHandler = useCallback(async () => {
     //console.log("run");
     setIsLoading(true);
     setError(null);
@@ -29,38 +31,75 @@ function App() {
           title: moviedata.title,
           openingText: moviedata.opening_crawl,
           releaseDate: moviedata.relese_date,
-               };
-             });
-          setMovies(transferMovies);
-        } 
-         catch (error) {
-            setError(error.message);
-            }
+        };
+      });
+      setMovies(transferMovies);
+    } catch (error) {
+      setError(error.message);
+    }
 
     setIsLoading(false);
-  }, [])
+  }, []);
 
-  useEffect(()=>{
-  fetchMovieHandler()
-}, [])
+  useEffect(() => {
+    fetchMovieHandler();
+  }, []);
 
   if (error) {
-     if (stopRetry) {
-        setTimeout(() => {
-           fetchMovieHandler();
-            }, 5000);
-           }
-         }
- 
+    if (stopRetry) {
+      setTimeout(() => {
+        fetchMovieHandler();
+      }, 5000);
+    }
+  }
+
   const stopError = () => {
     //console.log('stop')
     setStopRetry(false);
   };
 
+  //form  
+const titleHandler=(e)=>{
+  setTitle(e.target.value)
+}
 
+const openingTextHandler=(e)=>{
+  setOpeningText(e.target.value)
+}
+
+const releaseDateHandler=(e)=>{
+  setReleaseDate(e.target.value)
+}
+
+const formHandler=(e)=>{
+  e.preventDefault()
+
+  const obj={title:title,
+  openingText:openingText,
+releaseDate:releaseDate}
+
+console.log(obj)
+}
 
   return (
     <Fragment>
+      <section>
+        <form onSubmit={formHandler}>
+          <div>
+            <label htmlFor="title" >Title</label>
+            <input id="title" type="text" value={title} onChange={titleHandler}/>
+          </div>
+          <div>
+            <label htmlFor="opening text" >opening Text</label>
+            <input id="opening text" type="text"value={openingText} onChange={openingTextHandler} />
+          </div>
+          <div>
+            <label htmlFor="release date">release Date</label>
+            <input id="release date" type="date" value={releaseDate} onChange={releaseDateHandler}/>
+          </div>
+          <button type="submit">Add movie</button>
+        </form>
+      </section>
       <section className="section">
         <button onClick={fetchMovieHandler} className="button">
           fetch Movies
