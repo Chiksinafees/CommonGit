@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState, useCallback } from "react";
 import MovieList from "./component/MoviesList";
 import "./App.css";
+import AddMovies from "./AddMovies";
 
 function App() {
   const [movies, setMovies] = useState([]);
@@ -8,9 +9,6 @@ function App() {
   const [error, setError] = useState(null);
   const [stopRetry, setStopRetry] = useState(true);
 
-const [title, setTitle]=useState('')
-const [openingText, setOpeningText]=useState('')
-const [releaseDate, setReleaseDate]=useState('')
 
   const fetchMovieHandler = useCallback(async () => {
     //console.log("run");
@@ -18,32 +16,37 @@ const [releaseDate, setReleaseDate]=useState('')
     setError(null);
 
     try {
-      const response = await fetch("https://swapi.py4e.com/api/films/");
+      const response = await fetch("https://fetch-movie-d556e-default-rtdb.firebaseio.com/movies.json");
 
       if (!response.ok) {
         throw new Error("Something went wrong ....Retrying");
       }
 
       const data = await response.json();
-      const transferMovies = data.results.map((moviedata) => {
-        return {
-          id: moviedata.episode_id,
-          title: moviedata.title,
-          openingText: moviedata.opening_crawl,
-          releaseDate: moviedata.relese_date,
-        };
-      });
-      setMovies(transferMovies);
+
+      const loadedMovies =[]
+
+      for(const key in data){
+        loadedMovies.push({
+          id:key,
+          title:data[key].title,
+          openingText:data[key].openingText,
+          releaseDate:data[key].releaseDate
+        })
+      }
+
+      setMovies(loadedMovies);
     } catch (error) {
       setError(error.message);
     }
-
     setIsLoading(false);
   }, []);
 
+
   useEffect(() => {
     fetchMovieHandler();
-  }, []);
+  }, [fetchMovieHandler]);
+
 
   if (error) {
     if (stopRetry) {
@@ -58,47 +61,24 @@ const [releaseDate, setReleaseDate]=useState('')
     setStopRetry(false);
   };
 
-  //form  
-const titleHandler=(e)=>{
-  setTitle(e.target.value)
-}
 
-const openingTextHandler=(e)=>{
-  setOpeningText(e.target.value)
-}
-
-const releaseDateHandler=(e)=>{
-  setReleaseDate(e.target.value)
-}
-
-const formHandler=(e)=>{
-  e.preventDefault()
-
-  const obj={title:title,
-  openingText:openingText,
-releaseDate:releaseDate}
-
-console.log(obj)
-}
-
+   async function AddMoviesHandler(obj){
+    console.log(obj)
+    const response=await fetch ('https://fetch-movie-d556e-default-rtdb.firebaseio.com/movies.json',{
+      method:'POST',
+      body:JSON.stringify(obj),
+      Headers: {
+        'Content-Type':'application/json'
+      }
+    })
+    const data=await response.json()
+    console.log(data)
+   } 
+  
   return (
     <Fragment>
       <section>
-        <form onSubmit={formHandler}>
-          <div>
-            <label htmlFor="title" >Title</label>
-            <input id="title" type="text" value={title} onChange={titleHandler}/>
-          </div>
-          <div>
-            <label htmlFor="opening text" >opening Text</label>
-            <input id="opening text" type="text"value={openingText} onChange={openingTextHandler} />
-          </div>
-          <div>
-            <label htmlFor="release date">release Date</label>
-            <input id="release date" type="date" value={releaseDate} onChange={releaseDateHandler}/>
-          </div>
-          <button type="submit">Add movie</button>
-        </form>
+       <AddMovies onAddMovie={AddMoviesHandler}/>
       </section>
       <section className="section">
         <button onClick={fetchMovieHandler} className="button">
@@ -107,7 +87,7 @@ console.log(obj)
         <button onClick={stopError}>Cancel</button>
       </section>
       <section>
-        {!isloading && movies.length > 0 && <MovieList movies={movies} />}
+        {!isloading && movies.length > 0 && <MovieList movies={movies} onDel={fetchMovieHandler}/>}
         {!isloading && movies.length === 0 && !error && <p>no movies found</p>}
         {!isloading && error && <p>{error}</p>}
         {isloading && <p>loading...</p>}
